@@ -188,3 +188,26 @@ urlProviderSubmit.addEventListener('click', () => {
 
 
 /** End of Sample URL provider **/
+
+
+/** Sample Local File provider **/
+
+const localFileProviderPath = document.querySelector(
+  '.local-file-provider__path'
+);
+
+const localFileProviderUpload = document.querySelector(
+  '.local-file-provider__upload'
+);
+
+localFileProviderPath.addEventListener('change', (e) => {
+  for (const file of e.target.files) {
+    addSample(file);
+  }
+});
+
+localFileProviderUpload.addEventListener('click', () => {
+  localFileProviderPath.click();
+});
+
+/** End of Sample URL provider **/

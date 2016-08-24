@@ -20,6 +20,10 @@
   border-bottom: 1px dashed #000;
 }
 
+.local-file-provider__path {
+  display: none;
+}
+
 .samples-list {
   display: flex;
   flex-wrap: wrap;
