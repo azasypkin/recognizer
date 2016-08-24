@@ -12,6 +12,12 @@ const textRecognizer = new TextRecognizer();
 const storage = LocalStorage.isSupported() ?
   new LocalStorage() : new InMemoryStorage();
 
+const samples = new Map();
+
+const sampleIds = new Uint32Array(100);
+window.crypto.getRandomValues(sampleIds);
+let currentSampleIndex = 0;
+
 const apiKeyComponent = document.querySelector('.access__api-key');
 
 apiKeyComponent.addEventListener('change', () => {
@@ -25,6 +31,39 @@ storage.getByKey('access', 'api-key').catch((e) => {
 }).then((apiKey) => {
   apiKeyComponent.value = apiKey;
   textRecognizer.setAPIKey(apiKey);
+});
+const samplesListComponent = document.querySelector('.samples-list');
+
+samplesListComponent.addEventListener('click', (e) => {
+  if (!apiKeyComponent.value) {
+    alert('Please provide Microsoft Vision API key.');
+    return;
+  }
+
+  const sampleId = e.target.dataset.sampleId;
+  if (e.target.nodeName.toUpperCase() !== 'BUTTON' || !sampleId) {
+    return;
+  }
+
+  const sample = samples.get(Number.parseInt(sampleId));
+
+  if (e.target.dataset.isRecognize) {
+    textRecognizer.recognize(sample.image).then((data) => {
+      console.log('Success: %o', data);
+
+      sample.text = data;
+      samples.set(sample.id, sample);
+
+      textReader.read(data);
+
+      const container = document.getElementById(sample.id);
+      container.classList.add('sample__container--recognized');
+    }).catch((err) => {
+      console.error('Failure %o', err);
+    });
+  } else {
+    textReader.read(sample.text);
+  }
 });
 
 const videoPreviewComponent = document.querySelector('.video__preview');
@@ -85,9 +124,42 @@ shotButton.addEventListener('click', () => {
       videoPreviewComponent, 0, 0, width, height
   );
 
-  videoShotPreviewComponent.setAttribute(
-      'src', videoShotPreviewRendererComponent.toDataURL('image/png')
-  );
+  const sampleId = sampleIds[currentSampleIndex++];
+
+  const sampleContainer = document.createElement('div');
+  sampleContainer.classList = 'sample__container';
+  sampleContainer.id = sampleId;
+
+  const samplePreview = document.createElement('img');
+  samplePreview.classList = 'sample__preview';
+  samplePreview.src = videoShotPreviewRendererComponent.toDataURL('image/png');
+
+  const recognizeButton = document.createElement('button');
+  recognizeButton.type = 'button';
+  recognizeButton.textContent = 'Recognize';
+  recognizeButton.classList = 'sample__recognize-button';
+  recognizeButton.dataset.sampleId = sampleId;
+  recognizeButton.dataset.isRecognize = true;
+
+  const repeatButton = document.createElement('button');
+  repeatButton.type = 'button';
+  repeatButton.textContent = 'Repeat text';
+  repeatButton.classList = 'sample__repeat-button';
+  repeatButton.dataset.sampleId = sampleId;
+
+  sampleContainer.appendChild(samplePreview);
+  sampleContainer.appendChild(recognizeButton);
+  sampleContainer.appendChild(repeatButton);
+
+  samplesListComponent.appendChild(sampleContainer);
+
+  videoShotPreviewRendererComponent.toBlob((imageBlob) => {
+    samples.set(sampleId, {
+      id: sampleId,
+      image: imageBlob,
+      text: null
+    });
+  });
 });
 
 const recognizeButton = document.querySelector('.shot__recognize-button');
