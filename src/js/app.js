@@ -80,13 +80,6 @@ context.fillRect(
     videoShotPreviewRendererComponent.height
 );
 
-const videoShotPreviewComponent = document.querySelector(
-    '.video__shot-preview'
-);
-videoShotPreviewComponent.setAttribute(
-    'src', videoShotPreviewRendererComponent.toDataURL('image/png')
-);
-
 videoManager.getMediaStream().then((stream) => {
   videoPreviewComponent.src = window.URL.createObjectURL(stream);
   videoPreviewComponent.play();
@@ -162,25 +155,6 @@ shotButton.addEventListener('click', () => {
   });
 });
 
-const recognizeButton = document.querySelector('.shot__recognize-button');
-recognizeButton.setAttribute('disabled', 'disabled');
-recognizeButton.addEventListener('click', () => {
-  if (!apiKeyComponent.value) {
-    alert('Please provide Microsoft Vision API key.');
-    return;
-  }
-
-  videoShotPreviewRendererComponent.toBlob((imageBlob) => {
-    textRecognizer.recognize(imageBlob).then((data) => {
-      console.log('Success: %o', data);
-      textReader.read(data);
-    }).catch((err) => {
-      console.error('Failure %o', err);
-    });
-  });
-});
-
 canPlayDefer.promise.then(() => {
   shotButton.removeAttribute('disabled');
-  recognizeButton.removeAttribute('disabled');
 });

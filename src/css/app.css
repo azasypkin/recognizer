@@ -8,12 +8,6 @@
   border: 0.1rem solid #00f;
 }
 
-.video__shot-preview {
-  width: 320px;
-  height: 240px;
-  border: 0.1rem solid #ff0;
-}
-
 .video__shot-preview-renderer {
   display: none;
   width: 320px;
