@@ -25,6 +25,8 @@
     "gulp": "3.9.1",
     "gulp-babel": "6.1.2",
     "gulp-eslint": "3.0.1",
+    "gulp-gh-pages": "0.5.4",
+    "gulp-git": "1.11.0",
     "gulp-postcss": "6.1.1",
     "gulp-sourcemaps": "1.6.0",
     "gulp-stylelint": "3.0.0",
@@ -35,10 +37,12 @@
     "rollup": "0.34.7",
     "rollup-plugin-babel": "2.6.1",
     "rollup-plugin-includepaths": "0.1.5",
+    "rollup-plugin-uglify": "1.0.1",
     "rollup-stream": "1.11.0",
     "run-sequence": "1.2.2",
     "stylelint": "7.1.0",
     "stylelint-config-standard": "12.0.0",
+    "uglify-js": "github:mishoo/UglifyJS2#harmony",
     "vinyl-buffer": "1.0.0",
     "vinyl-source-stream": "1.1.0"
   }

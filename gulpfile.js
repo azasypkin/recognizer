@@ -1,8 +1,14 @@
+/* eslint-env node */
+
+'use strict';
+
 const babel = require('gulp-babel');
 const cssnano = require('cssnano');
 const buffer = require('vinyl-buffer');
 const del = require('del');
 const eslint = require('gulp-eslint');
+const git = require('gulp-git');
+const ghPages = require('gulp-gh-pages');
 const gulp = require('gulp');
 
 const merge = require('merge2');
@@ -13,11 +19,13 @@ const postcssUrl = require('postcss-url');
 const rollup = require('rollup-stream');
 const rollupBabelPlugin = require('rollup-plugin-babel');
 const rollupIncludePathsPlugin = require('rollup-plugin-includepaths');
+const rollupUglifyPlugin = require('rollup-plugin-uglify');
 const runSequence = require('run-sequence');
 
 const source = require('vinyl-source-stream');
 const sourcemaps = require('gulp-sourcemaps');
 const stylelint = require('gulp-stylelint');
+const uglifyjs = require('uglify-js');
 const webserver = require('gulp-webserver');
 
 const SRC_ROOT = './src/';
@@ -104,6 +112,27 @@ gulp.task('compile-app-dev', () => {
 });
 
 /**
+ * Compiles app source i.e. processes source with Babel and Rollup.
+ */
+gulp.task('compile-app-production', () => {
+  return rollup({
+    entry: `${SRC_ROOT}js/app.js`,
+    sourceMap: true,
+    plugins: [
+      rollupBabelPlugin(),
+      rollupUglifyPlugin({ sourceMap: true }, uglifyjs.minifier),
+      rollupIncludePathsPlugin({ extensions: ['.js', '.jsx'] }),
+    ]
+  })
+    .pipe(source('app.js', `${SRC_ROOT}js`))
+    .pipe(buffer())
+    .pipe(sourcemaps.init({ loadMaps: true }))
+    .pipe(sourcemaps.write('.'))
+    .pipe(gulp.dest(`${DIST_ROOT}js`));
+});
+
+
+/**
  * Builds the app for development.
  */
 gulp.task('build-dev', (cb) => {
@@ -112,6 +141,18 @@ gulp.task('build-dev', (cb) => {
   runSequence(
       'lint', 'clobber-app', 'copy-app-common', 'compile-app-dev',
       'compile-css', cb
+  );
+});
+
+/**
+ * Builds the app for the production.
+ */
+gulp.task('build-production', (cb) => {
+  process.env.BABEL_ENV = 'production';
+
+  runSequence(
+    'lint', 'clobber-app', 'copy-app-common', 'compile-app-production',
+    'compile-css', cb
   );
 });
 
@@ -129,4 +170,46 @@ gulp.task('watch', () => {
  */
 gulp.task('default', (cb) => {
   runSequence('build-dev', 'webserver', 'watch', cb);
+});
+
+/**
+ * Deploys production-optimized app build to the "origin/gh-branch". Every new
+ * deployment comes with a separate commit attributed with the date and source
+ * branch revision. If tree has some changes that are not committed yet, there
+ * will be a warning, but all local changes will be deployed anyway.
+ */
+gulp.task('deploy', ['build-production'], () => {
+  const wrapIntoPromise = (method, args) => new Promise((resolve, reject) => {
+    git[method].call(
+      git, args, (err, result) => err ? reject(err) : resolve(result)
+    );
+  });
+
+  return Promise
+    .all([
+      wrapIntoPromise('revParse', { args: '--short HEAD', quiet: true }),
+      wrapIntoPromise('status', { args: '--porcelain', quiet: true }),
+    ])
+    .then((results) => {
+      const revision = results[0];
+      const status = results[1];
+
+      let message = `Deployment is based on ${revision}`;
+
+      if (status) {
+        console.log(
+          '\x1b[31m',
+          `You have uncommitted changes that will be deployed!\n${status}`,
+          '\x1b[0m'
+        );
+
+        message += ' (includes uncommitted changes)';
+      }
+
+      return new Promise((resolve, reject) => {
+        merge(gulp.src(`${DIST_ROOT}**/*`).pipe(ghPages({ message })))
+          .on('end', resolve)
+          .on('error', reject);
+      });
+    });
 });
