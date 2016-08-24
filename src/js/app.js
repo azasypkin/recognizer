@@ -107,16 +107,7 @@ videoManager.getMediaStream().then((stream) => {
   canPlayDefer.reject(err);
 });
 
-const shotButton = document.querySelector('.video__shot-button');
-shotButton.setAttribute('disabled', 'disabled');
-shotButton.addEventListener('click', () => {
-  const width = Number(videoPreviewComponent.getAttribute('width'));
-  const height = Number(videoPreviewComponent.getAttribute('height'));
-
-  videoShotPreviewRendererComponent.getContext('2d').drawImage(
-      videoPreviewComponent, 0, 0, width, height
-  );
-
+function addSample(sampleBlob) {
   const sampleId = sampleIds[currentSampleIndex++];
 
   const sampleContainer = document.createElement('div');
@@ -125,7 +116,7 @@ shotButton.addEventListener('click', () => {
 
   const samplePreview = document.createElement('img');
   samplePreview.classList = 'sample__preview';
-  samplePreview.src = videoShotPreviewRendererComponent.toDataURL('image/png');
+  samplePreview.src = window.URL.createObjectURL(sampleBlob);
 
   const recognizeButton = document.createElement('button');
   recognizeButton.type = 'button';
@@ -146,15 +137,54 @@ shotButton.addEventListener('click', () => {
 
   samplesListComponent.appendChild(sampleContainer);
 
+  samples.set(sampleId, { id: sampleId, image: sampleBlob, text: null });
+}
+
+/** Sample Camera provider **/
+
+const shotButton = document.querySelector('.video__shot-button');
+shotButton.setAttribute('disabled', 'disabled');
+shotButton.addEventListener('click', () => {
+  videoShotPreviewRendererComponent.getContext('2d').drawImage(
+    videoPreviewComponent, 0, 0,
+    Number(videoPreviewComponent.getAttribute('width')),
+    Number(videoPreviewComponent.getAttribute('height'))
+  );
+
   videoShotPreviewRendererComponent.toBlob((imageBlob) => {
-    samples.set(sampleId, {
-      id: sampleId,
-      image: imageBlob,
-      text: null
-    });
+    addSample(imageBlob);
   });
 });
 
 canPlayDefer.promise.then(() => {
   shotButton.removeAttribute('disabled');
 });
+
+/** End of Sample Camera provider **/
+
+
+/** Sample URL provider **/
+const urlProviderURL = document.querySelector('.sample-url-provider__url');
+const urlProviderSubmit = document.querySelector(
+  '.sample-url-provider__submit'
+);
+
+urlProviderSubmit.addEventListener('click', () => {
+  const sampleURL = urlProviderURL.value;
+  if (!sampleURL) {
+    alert('Please provide a valid image URL!');
+    return;
+  }
+
+  return fetch(sampleURL).then((response) => {
+    return response.blob();
+  }).then((blob) => {
+    addSample(blob);
+  }).catch((e) => {
+    console.error('Failed to add sample from URL: ', e);
+    alert('Failed to add sample! See log for more details...');
+  });
+});
+
+
+/** End of Sample URL provider **/

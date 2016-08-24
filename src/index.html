@@ -9,14 +9,22 @@
 <body>
     <section class="access">
         <label>
-            Microsoft Visuion API token:
+            Microsoft Vision API token (<a href="https://www.microsoft.com/cognitive-services/en-us/computer-vision-api/documentation/howtocallvisionapi#Step1">obtain here</a>):
             <input type="text" class="access__api-key" />
         </label>
     </section>
     <video class="video__preview"></video>
     <canvas class="video__shot-preview-renderer"></canvas>
-    <section>
+    <section class="sample-provider">
         <button class="video__shot-button">Add sample from camera</button>
+    </section>
+    <section class="sample-provider">
+        <label>
+            URL: <input type="url" class="sample-url-provider__url" />
+        </label>
+        <button type="button" class="sample-url-provider__submit">
+            Use sample from URL
+        </button>
     </section>
     <h2>Samples</h2>
     <section class="samples-list">
