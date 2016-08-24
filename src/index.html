@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recognizer</title>
+    <link href="css/app.css" rel="stylesheet" />
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <section class="access">
+        <label>
+            Microsoft Visuion API token:
+            <input type="text" class="access__api-key" />
+        </label>
+    </section>
+    <video class="video__preview"></video>
+    <img class="video__shot-preview" src="" />
+    <canvas class="video__shot-preview-renderer"></canvas>
+    <section>
+        <button class="video__shot-button">Make a shot</button>
+        <button class="shot__recognize-button">Recognize</button>
+    </section>
+    <section class="samples">
+    </section>
+</body>
+</html>

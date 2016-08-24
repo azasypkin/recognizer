@@ -1,0 +1,114 @@
+import Defer from './defer';
+import VideoManager from './video-manager';
+import TextRecognizer from './text-recognizer';
+import TextReader from './text-reader';
+import LocalStorage from './local-storage';
+import InMemoryStorage from './in-memory-storage';
+
+const canPlayDefer = new Defer();
+const videoManager = new VideoManager();
+const textReader = new TextReader();
+const textRecognizer = new TextRecognizer();
+const storage = LocalStorage.isSupported() ?
+  new LocalStorage() : new InMemoryStorage();
+
+const apiKeyComponent = document.querySelector('.access__api-key');
+
+apiKeyComponent.addEventListener('change', () => {
+  storage.set('access', 'api-key', apiKeyComponent.value);
+  textRecognizer.setAPIKey(apiKeyComponent.value);
+});
+
+storage.getByKey('access', 'api-key').catch((e) => {
+  console.warn('Could not retrieve API key from the storage', e);
+  return '';
+}).then((apiKey) => {
+  apiKeyComponent.value = apiKey;
+  textRecognizer.setAPIKey(apiKey);
+});
+
+const videoPreviewComponent = document.querySelector('.video__preview');
+
+const videoShotPreviewRendererComponent = document.querySelector(
+    '.video__shot-preview-renderer'
+);
+const context = videoShotPreviewRendererComponent.getContext('2d');
+context.fillStyle = '#aaa';
+context.fillRect(
+    0,
+    0,
+    videoShotPreviewRendererComponent.width,
+    videoShotPreviewRendererComponent.height
+);
+
+const videoShotPreviewComponent = document.querySelector(
+    '.video__shot-preview'
+);
+videoShotPreviewComponent.setAttribute(
+    'src', videoShotPreviewRendererComponent.toDataURL('image/png')
+);
+
+videoManager.getMediaStream().then((stream) => {
+  videoPreviewComponent.src = window.URL.createObjectURL(stream);
+  videoPreviewComponent.play();
+
+  videoPreviewComponent.addEventListener('loadedmetadata', () => {
+    const width = 320;
+    let height = videoPreviewComponent.videoHeight /
+        (videoPreviewComponent.videoWidth / width);
+
+    // Firefox currently has a bug where the height can't be read from
+    // the video, so we will make assumptions if this happens.
+    if (isNaN(height)) {
+      height = width / (4 / 3);
+    }
+
+    videoPreviewComponent.setAttribute('width', width);
+    videoPreviewComponent.setAttribute('height', height);
+
+    videoShotPreviewRendererComponent.setAttribute('width', width);
+    videoShotPreviewRendererComponent.setAttribute('height', height);
+
+    canPlayDefer.resolve({ width, height });
+  }, false);
+}).catch((err) => {
+  canPlayDefer.reject(err);
+});
+
+const shotButton = document.querySelector('.video__shot-button');
+shotButton.setAttribute('disabled', 'disabled');
+shotButton.addEventListener('click', () => {
+  const width = Number(videoPreviewComponent.getAttribute('width'));
+  const height = Number(videoPreviewComponent.getAttribute('height'));
+
+  videoShotPreviewRendererComponent.getContext('2d').drawImage(
+      videoPreviewComponent, 0, 0, width, height
+  );
+
+  videoShotPreviewComponent.setAttribute(
+      'src', videoShotPreviewRendererComponent.toDataURL('image/png')
+  );
+});
+
+const recognizeButton = document.querySelector('.shot__recognize-button');
+recognizeButton.setAttribute('disabled', 'disabled');
+recognizeButton.addEventListener('click', () => {
+  if (!apiKeyComponent.value) {
+    alert('Please provide Microsoft Vision API key.');
+    return;
+  }
+
+  videoShotPreviewRendererComponent.toBlob((imageBlob) => {
+    textRecognizer.recognize(imageBlob).then((data) => {
+      console.log('Success: %o', data);
+      textReader.read(data);
+    }).catch((err) => {
+      console.error('Failure %o', err);
+    });
+  });
+});
+
+canPlayDefer.promise.then(() => {
+  shotButton.removeAttribute('disabled');
+  recognizeButton.removeAttribute('disabled');
+});
