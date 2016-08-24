@@ -82,9 +82,10 @@ context.fillRect(
 
 videoManager.getMediaStream().then((stream) => {
   videoPreviewComponent.src = window.URL.createObjectURL(stream);
-  videoPreviewComponent.play();
 
   videoPreviewComponent.addEventListener('loadedmetadata', () => {
+    videoPreviewComponent.play();
+
     const width = 320;
     let height = videoPreviewComponent.videoHeight /
         (videoPreviewComponent.videoWidth / width);
