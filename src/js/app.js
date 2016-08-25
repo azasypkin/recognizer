@@ -169,20 +169,15 @@ const urlProviderURL = document.querySelector('.sample-url-provider__url');
 const urlProviderSubmit = document.querySelector(
   '.sample-url-provider__submit'
 );
+const examplesList = document.querySelector('.sample-url-provider__examples');
 
-urlProviderSubmit.addEventListener('click', () => {
-  const sampleURL = urlProviderURL.value;
-  if (!sampleURL) {
-    alert('Please provide a valid image URL!');
-    return;
-  }
-
-  return fetch(sampleURL).catch((e) => {
+function addSampleFromURL(url) {
+  return fetch(url).catch((e) => {
     console.warn('Can not load image directly, trying through the proxy: ', e);
 
-    const proxyURL = `https://recognizer-ocr-proxy.herokuapp.com/?${sampleURL}`;
+    const proxyURL = `https://recognizer-ocr-proxy.herokuapp.com/?${url}`;
     const headers = new Headers();
-    headers.append('Target-URL', sampleURL);
+    headers.append('Target-URL', url);
 
     return fetch(proxyURL, { headers });
   }).then((response) => {
@@ -193,6 +188,24 @@ urlProviderSubmit.addEventListener('click', () => {
     console.error('Failed to add sample from URL: ', e);
     alert('Failed to add sample! See log for more details...');
   });
+}
+
+urlProviderSubmit.addEventListener('click', () => {
+  const sampleURL = urlProviderURL.value;
+  if (!sampleURL) {
+    alert('Please provide a valid image URL!');
+    return;
+  }
+
+  addSampleFromURL(sampleURL);
+});
+
+examplesList.addEventListener('click', (e) => {
+  if (e.target.nodeName.toUpperCase() !== 'LI') {
+    return;
+  }
+
+  addSampleFromURL(e.target.textContent.trim());
 });
 
 

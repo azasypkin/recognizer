@@ -20,6 +20,13 @@
   border-bottom: 1px dashed #000;
 }
 
+.sample-url-provider__examples-link {
+  padding: 0.1rem 0;
+  cursor: pointer;
+  text-decoration: underline;
+  color: #00f;
+}
+
 .local-file-provider__path {
   display: none;
 }
