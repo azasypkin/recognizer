@@ -9,21 +9,23 @@
 <body>
     <section class="access">
         <label>
-            Microsoft Vision API token (<a href="https://www.microsoft.com/cognitive-services/en-us/computer-vision-api/documentation/howtocallvisionapi#Step1">obtain here</a>):
+            <b>Microsoft Vision API token (<a href="https://www.microsoft.com/cognitive-services/en-us/computer-vision-api/documentation/howtocallvisionapi#Step1">obtain here</a>):</b>
             <input type="text" class="access__api-key" />
         </label>
     </section>
-    <video class="video__preview"></video>
-    <canvas class="video__shot-preview-renderer"></canvas>
     <section class="sample-provider">
-        <button class="video__shot-button">Add sample from camera</button>
+        <h2>Sample from Web camera:</h2>
+        <video class="video__preview"></video>
+        <canvas class="video__shot-preview-renderer"></canvas>
+        <button class="video__shot-button">Add sample</button>
     </section>
     <section class="sample-provider">
+        <h2>Sample from external image URL:</h2>
         <label>
             URL: <input type="url" class="sample-url-provider__url" />
         </label>
         <button type="button" class="sample-url-provider__submit">
-            Use sample from URL
+            Add sample
         </button>
         <h3>Examples (click to add sample):</h3>
         <ul class="sample-url-provider__examples">
@@ -42,9 +44,34 @@
         </ul>
     </section>
     <section class="sample-provider">
+        <h2>Sample from your device:</h2>
         <input type="file" class="local-file-provider__path" multiple accept="image/*" />
         <button type="button" class="local-file-provider__upload">
-            Upload files from your device
+            Choose samples to add
+        </button>
+    </section>
+    <section class="sample-provider">
+        <h2>Draw your own sample:</h2>
+        <canvas class="manual-sample-provider__canvas" width="320" height="240">
+
+        </canvas>
+        <div class="manual-sample-provider__tools">
+            <input type="color" class="manual-sample-provider__color-picker" />
+            <select class="manual-sample-provider__width">
+                <option value="1">1</option>
+                <option value="2" selected>2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+
+            <button type="button" class="manual-sample-provider__clear-button">
+                Clear
+            </button>
+        </div>
+        <button type="button" class="manual-sample-provider__submit">
+            Add sample
         </button>
     </section>
 

@@ -4,6 +4,7 @@ import TextRecognizer from './text-recognizer';
 import TextReader from './text-reader';
 import LocalStorage from './local-storage';
 import InMemoryStorage from './in-memory-storage';
+import Painter from './painter';
 
 const canPlayDefer = new Defer();
 const videoManager = new VideoManager();
@@ -139,6 +140,10 @@ function addSample(sampleBlob) {
   samplesListComponent.appendChild(sampleContainer);
 
   samples.set(sampleId, { id: sampleId, image: sampleBlob, text: null });
+
+  setTimeout(() => {
+    sampleContainer.scrollIntoView();
+  }, 1000);
 }
 
 /** Sample Camera provider **/
@@ -233,3 +238,51 @@ localFileProviderUpload.addEventListener('click', () => {
 });
 
 /** End of Sample URL provider **/
+
+
+/** Manual Sample provider **/
+const manualSampleCanvas = document.querySelector(
+  '.manual-sample-provider__canvas'
+);
+
+const manualSampleColorPicker = document.querySelector(
+  '.manual-sample-provider__color-picker'
+);
+
+const manualSampleWidth = document.querySelector(
+  '.manual-sample-provider__width'
+);
+
+const manualSampleClearButton = document.querySelector(
+  '.manual-sample-provider__clear-button'
+);
+
+const manualSampleSubmit = document.querySelector(
+  '.manual-sample-provider__submit'
+);
+
+const painter = new Painter(manualSampleCanvas);
+
+manualSampleColorPicker.addEventListener('change', () => {
+  painter.setStyle(
+    manualSampleColorPicker.value,
+    Number(manualSampleWidth.value)
+  );
+});
+
+manualSampleWidth.addEventListener('change', () => {
+  painter.setStyle(
+    manualSampleColorPicker.value,
+    Number(manualSampleWidth.value)
+  );
+});
+
+manualSampleClearButton.addEventListener('click', () => {
+  painter.clear();
+});
+
+manualSampleSubmit.addEventListener('click', () => {
+  manualSampleCanvas.toBlob((imageBlob) => addSample(imageBlob));
+});
+
+/** End of Manual Sample provider **/

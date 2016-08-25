@@ -3,9 +3,11 @@
 }
 
 .video__preview {
+  display: block;
   width: 320px;
   height: 240px;
-  border: 0.1rem solid #00f;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 0 1em #b1b1b1, 0 0 1em #6d0b3d;
 }
 
 .video__shot-preview-renderer {
@@ -25,6 +27,29 @@
   cursor: pointer;
   text-decoration: underline;
   color: #00f;
+}
+
+.manual-sample-provider__canvas {
+  display: block;
+  width: 320px;
+  height: 240px;
+  margin-bottom: 1rem;
+  box-shadow: inset 0 0 1em #b1b1b1, 0 0 1em #6d0b3d;
+}
+
+.manual-sample-provider__tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 320px;
+  margin-bottom: 1rem;
+}
+
+.manual-sample-provider__tools > button,
+.manual-sample-provider__tools > select,
+.manual-sample-provider__tools > input {
+  min-width: 3rem;
+  height: 2rem;
 }
 
 .local-file-provider__path {
