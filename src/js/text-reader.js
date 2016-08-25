@@ -82,11 +82,12 @@ export default class TextReader {
           `Let me read words from the line number ${l + 1}:`
         );
 
-        for (let w = 0; w < line.words.length; w++) {
-          synthesizer.speak(line.words[w].text, language);
-        }
-      }
+        const sentence = line.words.reduce((sentence, word) => {
+          return `${sentence} ${word.text}`;
+        }, '');
 
+        synthesizer.speak(sentence, language);
+      }
     }
   }
 }

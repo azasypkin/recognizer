@@ -177,7 +177,15 @@ urlProviderSubmit.addEventListener('click', () => {
     return;
   }
 
-  return fetch(sampleURL).then((response) => {
+  return fetch(sampleURL).catch((e) => {
+    console.warn('Can not load image directly, trying through the proxy: ', e);
+
+    const proxyURL = `https://recognizer-ocr-proxy.herokuapp.com/?${sampleURL}`;
+    const headers = new Headers();
+    headers.append('Target-URL', sampleURL);
+
+    return fetch(proxyURL, { headers });
+  }).then((response) => {
     return response.blob();
   }).then((blob) => {
     addSample(blob);
