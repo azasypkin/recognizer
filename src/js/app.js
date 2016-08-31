@@ -6,6 +6,19 @@ import LocalStorage from './local-storage';
 import InMemoryStorage from './in-memory-storage';
 import Painter from './painter';
 
+const sampleActions = Object.freeze({
+  RECOGNIZE: 'RECOGNIZE',
+  REPEAT: 'REPEAT',
+  ROTATE: 'ROTATE'
+});
+
+const orientation = Object.freeze({
+  LEFT: 'Left',
+  RIGHT: 'Right',
+  UP: 'Up',
+  DOWN: 'Down'
+});
+
 const canPlayDefer = new Defer();
 const videoManager = new VideoManager();
 const textReader = new TextReader();
@@ -47,13 +60,16 @@ samplesListComponent.addEventListener('click', (e) => {
   }
 
   const sample = samples.get(Number.parseInt(sampleId));
+  const buttonKind = e.target.dataset.kind;
 
-  if (e.target.dataset.isRecognize) {
+  if (buttonKind === sampleActions.RECOGNIZE) {
     textRecognizer.recognize(sample.image).then((data) => {
       console.log('Success: %o', data);
 
       sample.text = data;
       samples.set(sample.id, sample);
+
+      outlineSampleWords(sample);
 
       textReader.read(data);
 
@@ -62,23 +78,23 @@ samplesListComponent.addEventListener('click', (e) => {
     }).catch((err) => {
       console.error('Failure %o', err);
     });
-  } else {
+  } else if (buttonKind === sampleActions.REPEAT) {
     textReader.read(sample.text);
   }
 });
 
 const videoPreviewComponent = document.querySelector('.video__preview');
 
-const videoShotPreviewRendererComponent = document.querySelector(
-    '.video__shot-preview-renderer'
-);
-const context = videoShotPreviewRendererComponent.getContext('2d');
+const blobRendererComponent = document.querySelector('.blob__renderer');
+const blobLoaderComponent = document.querySelector('.blob__loader');
+
+const context = blobRendererComponent.getContext('2d');
 context.fillStyle = '#aaa';
 context.fillRect(
     0,
     0,
-    videoShotPreviewRendererComponent.width,
-    videoShotPreviewRendererComponent.height
+    blobRendererComponent.width,
+    blobRendererComponent.height
 );
 
 videoManager.getMediaStream().then((stream) => {
@@ -99,9 +115,6 @@ videoManager.getMediaStream().then((stream) => {
 
     videoPreviewComponent.setAttribute('width', width);
     videoPreviewComponent.setAttribute('height', height);
-
-    videoShotPreviewRendererComponent.setAttribute('width', width);
-    videoShotPreviewRendererComponent.setAttribute('height', height);
 
     canPlayDefer.resolve({ width, height });
   }, false);
@@ -125,13 +138,14 @@ function addSample(sampleBlob) {
   recognizeButton.textContent = 'Recognize';
   recognizeButton.classList = 'sample__recognize-button';
   recognizeButton.dataset.sampleId = sampleId;
-  recognizeButton.dataset.isRecognize = true;
+  recognizeButton.dataset.kind = sampleActions.RECOGNIZE;
 
   const repeatButton = document.createElement('button');
   repeatButton.type = 'button';
   repeatButton.textContent = 'Repeat text';
   repeatButton.classList = 'sample__repeat-button';
   repeatButton.dataset.sampleId = sampleId;
+  repeatButton.dataset.kind = sampleActions.REPEAT;
 
   sampleContainer.appendChild(samplePreview);
   sampleContainer.appendChild(recognizeButton);
@@ -146,18 +160,82 @@ function addSample(sampleBlob) {
   }, 1000);
 }
 
+function outlineSampleWords(sample) {
+  blobLoaderComponent.src = window.URL.createObjectURL(sample.image);
+  blobLoaderComponent.onload = () => {
+    const canvasContext = blobRendererComponent.getContext('2d');
+
+    canvasContext.clearRect(
+      0, 0, Number(blobRendererComponent.getAttribute('width')),
+      Number(blobRendererComponent.getAttribute('height'))
+    );
+
+    blobRendererComponent.setAttribute('width', blobLoaderComponent.width);
+    blobRendererComponent.setAttribute('height', blobLoaderComponent.height);
+
+    canvasContext.drawImage(
+      blobLoaderComponent, 0, 0, blobLoaderComponent.width,
+      blobLoaderComponent.height
+    );
+
+    canvasContext.translate(
+      blobLoaderComponent.width / 2, blobLoaderComponent.height / 2
+    );
+
+    let textAngle = sample.text.textAngle;
+
+    if (sample.text.orientation === orientation.LEFT) {
+      textAngle -= 90;
+    } else if (sample.text.orientation === orientation.RIGHT) {
+      textAngle += 90;
+    } else if (sample.text.orientation === orientation.DOWN) {
+      textAngle += 180;
+    }
+
+    canvasContext.rotate(textAngle * Math.PI / 180);
+
+    for (const region of sample.text.regions) {
+      for (const line of region.lines) {
+        for (const word of line.words) {
+          const boundingBox = word.boundingBox.split(',').map((dimension) => {
+            return Number(dimension.trim());
+          });
+
+          canvasContext.rect(
+            boundingBox[0] - blobLoaderComponent.width / 2,
+            boundingBox[1] - blobLoaderComponent.height / 2,
+            boundingBox[2], boundingBox[3]
+          );
+          canvasContext.stroke();
+        }
+      }
+    }
+
+    blobRendererComponent.toBlob((imageBlob) => {
+      document.getElementById(sample.id).querySelector('img').src =
+        window.URL.createObjectURL(imageBlob);
+    });
+  };
+
+  document.body.appendChild(blobLoaderComponent);
+}
+
 /** Sample Camera provider **/
 
 const shotButton = document.querySelector('.video__shot-button');
 shotButton.setAttribute('disabled', 'disabled');
 shotButton.addEventListener('click', () => {
-  videoShotPreviewRendererComponent.getContext('2d').drawImage(
-    videoPreviewComponent, 0, 0,
-    Number(videoPreviewComponent.getAttribute('width')),
-    Number(videoPreviewComponent.getAttribute('height'))
+  const width = videoPreviewComponent.getAttribute('width');
+  const height = videoPreviewComponent.getAttribute('height');
+
+  blobRendererComponent.setAttribute('width', width);
+  blobRendererComponent.setAttribute('height', height);
+
+  blobRendererComponent.getContext('2d').drawImage(
+    videoPreviewComponent, 0, 0, Number(width), Number(height)
   );
 
-  videoShotPreviewRendererComponent.toBlob((imageBlob) => {
+  blobRendererComponent.toBlob((imageBlob) => {
     addSample(imageBlob);
   });
 });
