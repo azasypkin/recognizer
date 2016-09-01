@@ -1,3 +1,7 @@
+h1 {
+  font-size: 3rem;
+}
+
 .action-button {
   margin: 1rem 0 0;
   font-size: 3rem;
@@ -25,7 +29,6 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px dashed #000;
 }
@@ -38,9 +41,6 @@
 
 .sample-url-provider__examples-link {
   padding: 0.1rem 0;
-  cursor: pointer;
-  text-decoration: underline;
-  color: #00f;
 }
 
 .manual-sample-provider__canvas {
@@ -73,6 +73,7 @@
 .samples-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .sample__container {

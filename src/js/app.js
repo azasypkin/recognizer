@@ -154,10 +154,6 @@ function addSample(sampleBlob) {
   samplesListComponent.appendChild(sampleContainer);
 
   samples.set(sampleId, { id: sampleId, image: sampleBlob, text: null });
-
-  setTimeout(() => {
-    sampleContainer.scrollIntoView();
-  }, 1000);
 }
 
 function outlineSampleWords(sample) {
@@ -252,7 +248,6 @@ const urlProviderURL = document.querySelector('.sample-url-provider__url');
 const urlProviderSubmit = document.querySelector(
   '.sample-url-provider__submit'
 );
-const examplesList = document.querySelector('.sample-url-provider__examples');
 
 function addSampleFromURL(url) {
   return fetch(url).catch((e) => {
@@ -282,15 +277,6 @@ urlProviderSubmit.addEventListener('click', () => {
 
   addSampleFromURL(sampleURL);
 });
-
-examplesList.addEventListener('click', (e) => {
-  if (e.target.nodeName.toUpperCase() !== 'LI') {
-    return;
-  }
-
-  addSampleFromURL(e.target.textContent.trim());
-});
-
 
 /** End of Sample URL provider **/
 
@@ -364,3 +350,17 @@ manualSampleSubmit.addEventListener('click', () => {
 });
 
 /** End of Manual Sample provider **/
+
+function addSampleFromHash() {
+  if (!location.hash || location.hash.length < 2) {
+    return;
+  }
+
+  addSampleFromURL(location.hash.slice(1).trim());
+}
+
+window.addEventListener('hashchange', () => {
+  addSampleFromHash();
+});
+
+addSampleFromHash();
