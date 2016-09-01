@@ -19,14 +19,12 @@
         <button class="video__shot-button action-button">Add sample</button>
     </section>
     <section class="sample-provider">
-        <h2>Sample from external image URL:</h2>
-        <label>
-            URL: <input type="url" class="sample-url-provider__url" />
-        </label>
-        <button type="button" class="sample-url-provider__submit">
+        <h1>Sample from external image URL:</h1>
+        <input title="URL address" ype="url" class="sample-url-provider__url" />
+        <button type="button" class="sample-url-provider__submit action-button">
             Add sample
         </button>
-        <h3>Examples (click to add sample):</h3>
+        <h2>Examples (click to add sample):</h2>
         <ul class="sample-url-provider__examples">
             <li class="sample-url-provider__examples-link">
                 https://i.ytimg.com/vi/QU9XxH4Aqok/maxresdefault.jpg
@@ -64,14 +62,14 @@
         </ul>
     </section>
     <section class="sample-provider">
-        <h2>Sample from your device:</h2>
+        <h1>Sample from your device:</h1>
         <input type="file" class="local-file-provider__path" multiple accept="image/*" />
         <button type="button" class="local-file-provider__upload action-button">
             Choose samples to add
         </button>
     </section>
     <section class="sample-provider">
-        <h2>Draw your own sample:</h2>
+        <h1>Draw your own sample:</h1>
         <canvas class="manual-sample-provider__canvas" width="320" height="240">
 
         </canvas>
@@ -95,7 +93,7 @@
         </button>
     </section>
 
-    <h2>Samples</h2>
+    <h1>Samples</h1>
     <section class="samples-list">
     </section>
     <canvas class="blob__renderer"></canvas>

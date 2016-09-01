@@ -136,14 +136,14 @@ function addSample(sampleBlob) {
   const recognizeButton = document.createElement('button');
   recognizeButton.type = 'button';
   recognizeButton.textContent = 'Recognize';
-  recognizeButton.classList = 'sample__recognize-button';
+  recognizeButton.classList = 'sample__recognize-button action-button';
   recognizeButton.dataset.sampleId = sampleId;
   recognizeButton.dataset.kind = sampleActions.RECOGNIZE;
 
   const repeatButton = document.createElement('button');
   repeatButton.type = 'button';
   repeatButton.textContent = 'Repeat text';
-  repeatButton.classList = 'sample__repeat-button';
+  repeatButton.classList = 'sample__repeat-button action-button';
   repeatButton.dataset.sampleId = sampleId;
   repeatButton.dataset.kind = sampleActions.REPEAT;
 
