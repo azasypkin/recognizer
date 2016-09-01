@@ -3,7 +3,7 @@ const p = Object.freeze({
 });
 
 export default class VideoManager {
-  getMediaStream(video = true, audio = false) {
+  getMediaStream(video = { facingMode: 'environment' }, audio = false) {
     // Older browsers might not implement mediaDevices at all, so we set an
     // empty object first.
     if(navigator.mediaDevices === undefined) {
