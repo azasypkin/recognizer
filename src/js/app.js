@@ -103,20 +103,10 @@ videoManager.getMediaStream().then((stream) => {
   videoPreviewComponent.addEventListener('loadedmetadata', () => {
     videoPreviewComponent.play();
 
-    const width = 320;
-    let height = videoPreviewComponent.videoHeight /
-        (videoPreviewComponent.videoWidth / width);
-
-    // Firefox currently has a bug where the height can't be read from
-    // the video, so we will make assumptions if this happens.
-    if (isNaN(height)) {
-      height = width / (4 / 3);
-    }
-
-    videoPreviewComponent.setAttribute('width', width);
-    videoPreviewComponent.setAttribute('height', height);
-
-    canPlayDefer.resolve({ width, height });
+    canPlayDefer.resolve({
+      width: videoPreviewComponent.videoWidth,
+      height: videoPreviewComponent.videoHeight
+    });
   }, false);
 }).catch((err) => {
   canPlayDefer.reject(err);
@@ -197,12 +187,12 @@ function outlineSampleWords(sample) {
             return Number(dimension.trim());
           });
 
-          canvasContext.rect(
+          canvasContext.strokeStyle = '#FF0000';
+          canvasContext.strokeRect(
             boundingBox[0] - blobLoaderComponent.width / 2,
             boundingBox[1] - blobLoaderComponent.height / 2,
             boundingBox[2], boundingBox[3]
           );
-          canvasContext.stroke();
         }
       }
     }
@@ -221,8 +211,8 @@ function outlineSampleWords(sample) {
 const shotButton = document.querySelector('.video__shot-button');
 shotButton.setAttribute('disabled', 'disabled');
 shotButton.addEventListener('click', () => {
-  const width = videoPreviewComponent.getAttribute('width');
-  const height = videoPreviewComponent.getAttribute('height');
+  const width = videoPreviewComponent.clientWidth;
+  const height = videoPreviewComponent.clientHeight;
 
   blobRendererComponent.setAttribute('width', width);
   blobRendererComponent.setAttribute('height', height);

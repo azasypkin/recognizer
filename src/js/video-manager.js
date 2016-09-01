@@ -17,10 +17,7 @@ export default class VideoManager {
       navigator.mediaDevices.getUserMedia = this[p.getUserMediaOld];
     }
 
-    return navigator.mediaDevices.getUserMedia({
-      audio,
-      video: video ? { facingMode: { exact: 'environment' } } : false }
-    ).then(
+    return navigator.mediaDevices.getUserMedia({ audio, video }).then(
       (stream) => {
         console.log('[VideoManager]: Media stream is available.');
 
