@@ -1,7 +1,7 @@
 import Defer from './defer';
 import VideoManager from './video-manager';
 import TextRecognizer from './text-recognizer';
-import TextReader from './text-reader';
+import ThingDescriber from './thing-describer';
 import LocalStorage from './local-storage';
 import InMemoryStorage from './in-memory-storage';
 import Painter from './painter';
@@ -12,16 +12,9 @@ const sampleActions = Object.freeze({
   ROTATE: 'ROTATE'
 });
 
-const orientation = Object.freeze({
-  LEFT: 'Left',
-  RIGHT: 'Right',
-  UP: 'Up',
-  DOWN: 'Down'
-});
-
 const canPlayDefer = new Defer();
 const videoManager = new VideoManager();
-const textReader = new TextReader();
+const thingDescriber = new ThingDescriber();
 const textRecognizer = new TextRecognizer();
 const storage = LocalStorage.isSupported() ?
   new LocalStorage() : new InMemoryStorage();
@@ -46,7 +39,10 @@ storage.getByKey('access', 'api-key').catch((e) => {
   apiKeyComponent.value = apiKey;
   textRecognizer.setAPIKey(apiKey);
 });
+
 const samplesListComponent = document.querySelector('.samples-list');
+const blobRendererComponent = document.querySelector('.blob__renderer');
+const blobLoaderComponent = document.querySelector('.blob__loader');
 
 samplesListComponent.addEventListener('click', (e) => {
   if (!apiKeyComponent.value) {
@@ -63,30 +59,32 @@ samplesListComponent.addEventListener('click', (e) => {
   const buttonKind = e.target.dataset.kind;
 
   if (buttonKind === sampleActions.RECOGNIZE) {
-    textRecognizer.recognize(sample.image).then((data) => {
-      console.log('Success: %o', data);
+    textRecognizer.recognize(sample.image).then((textMetadata) => {
+      console.log('Success: %o', textMetadata);
 
-      sample.text = data;
+      sample.text = textMetadata;
       samples.set(sample.id, sample);
-
-      outlineSampleWords(sample);
-
-      textReader.read(data);
 
       const container = document.getElementById(sample.id);
       container.classList.add('sample__container--recognized');
+
+      return getSampleCanvas(sample).then((textCanvas) => {
+        thingDescriber.describe(textMetadata, textCanvas);
+
+        blobRendererComponent.toBlob((imageBlob) => {
+          document.getElementById(sample.id).querySelector('img').src =
+            window.URL.createObjectURL(imageBlob);
+        });
+      });
     }).catch((err) => {
       console.error('Failure %o', err);
     });
   } else if (buttonKind === sampleActions.REPEAT) {
-    textReader.read(sample.text);
+    thingDescriber.describe(sample.text);
   }
 });
 
 const videoPreviewComponent = document.querySelector('.video__preview');
-
-const blobRendererComponent = document.querySelector('.blob__renderer');
-const blobLoaderComponent = document.querySelector('.blob__loader');
 
 const context = blobRendererComponent.getContext('2d');
 context.fillStyle = '#aaa';
@@ -146,8 +144,11 @@ function addSample(sampleBlob) {
   samples.set(sampleId, { id: sampleId, image: sampleBlob, text: null });
 }
 
-function outlineSampleWords(sample) {
+function getSampleCanvas(sample) {
+  const defer = new Defer();
+
   blobLoaderComponent.src = window.URL.createObjectURL(sample.image);
+
   blobLoaderComponent.onload = () => {
     const canvasContext = blobRendererComponent.getContext('2d');
 
@@ -164,46 +165,16 @@ function outlineSampleWords(sample) {
       blobLoaderComponent.height
     );
 
-    canvasContext.translate(
-      blobLoaderComponent.width / 2, blobLoaderComponent.height / 2
-    );
-
-    let textAngle = sample.text.textAngle;
-
-    if (sample.text.orientation === orientation.LEFT) {
-      textAngle -= 90;
-    } else if (sample.text.orientation === orientation.RIGHT) {
-      textAngle += 90;
-    } else if (sample.text.orientation === orientation.DOWN) {
-      textAngle += 180;
-    }
-
-    canvasContext.rotate(textAngle * Math.PI / 180);
-
-    for (const region of sample.text.regions) {
-      for (const line of region.lines) {
-        for (const word of line.words) {
-          const boundingBox = word.boundingBox.split(',').map((dimension) => {
-            return Number(dimension.trim());
-          });
-
-          canvasContext.strokeStyle = '#FF0000';
-          canvasContext.strokeRect(
-            boundingBox[0] - blobLoaderComponent.width / 2,
-            boundingBox[1] - blobLoaderComponent.height / 2,
-            boundingBox[2], boundingBox[3]
-          );
-        }
-      }
-    }
-
-    blobRendererComponent.toBlob((imageBlob) => {
-      document.getElementById(sample.id).querySelector('img').src =
-        window.URL.createObjectURL(imageBlob);
+    defer.resolve({
+      context: canvasContext,
+      width: blobLoaderComponent.width,
+      height: blobLoaderComponent.height
     });
   };
 
-  document.body.appendChild(blobLoaderComponent);
+  blobLoaderComponent.onerror = (e) => defer.reject(e);
+
+  return defer.promise;
 }
 
 /** Sample Camera provider **/
