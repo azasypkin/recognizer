@@ -35,7 +35,7 @@ const p = Object.freeze({
   synthesizer: Symbol('synthesizer')
 });
 
-export default class UnknonwThingRecognizer {
+export default class UnknownThingDescriber {
   constructor(synthesizer) {
     if (!synthesizer) {
       throw new Error('Speech Synthesizer should be provided!');
