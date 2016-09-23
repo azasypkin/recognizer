@@ -44,12 +44,19 @@ export default class UnknownThingDescriber {
     this[p.synthesizer] = synthesizer;
   }
 
-  canDescribe() {
+  canDescribe(textMetadata) {
+    const numberOfTextRegions = textMetadata.regions ?
+      textMetadata.regions.length : 0;
+    if (numberOfTextRegions === 0) {
+      return false;
+    }
+
     return true;
   }
 
   describe(textMetadata, textCanvas) {
-    const numberOfTextRegions = textMetadata.regions.length;
+    const numberOfTextRegions = textMetadata.regions ?
+      textMetadata.regions.length : 0;
     if (numberOfTextRegions === 0) {
       throw new Error('Text metadata is not provided!');
     }

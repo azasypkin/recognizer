@@ -16,6 +16,8 @@ const postcss = require('gulp-postcss');
 const postcssImport = require('postcss-import');
 const postcssUrl = require('postcss-url');
 
+const rename = require('gulp-rename');
+
 const rollup = require('rollup-stream');
 const rollupBabelPlugin = require('rollup-plugin-babel');
 const rollupIncludePathsPlugin = require('rollup-plugin-includepaths');
@@ -66,15 +68,21 @@ gulp.task('webserver', () => {
 });
 
 gulp.task('copy-app-common', () => {
-  return gulp.src([
-    `${SRC_ROOT}**`,
-    // Don't copy documentation files.
-    `!${SRC_ROOT}**/*.md`,
-    // Don't copy JS, it will be compiled and copied on the compile step.
-    `!${SRC_ROOT}js/**`,
-    // Don't copy CSS, it will be compiled and copied on the compile step.
-    `!${SRC_ROOT}**/*.css`,
-  ], { nodir: true }).pipe(gulp.dest(DIST_ROOT));
+  return merge(
+    gulp.src([
+      `${SRC_ROOT}**`,
+      // Don't copy documentation files.
+      `!${SRC_ROOT}**/*.md`,
+      // Don't copy JS, it will be compiled and copied on the compile step.
+      `!${SRC_ROOT}js/**`,
+      // Don't copy CSS, it will be compiled and copied on the compile step.
+      `!${SRC_ROOT}**/*.css`
+    ], { nodir: true }),
+
+    // Module loader.
+    gulp.src('./node_modules/quagga/dist/quagga.min.js')
+      .pipe(rename('js/quagga.js'))
+  ).pipe(gulp.dest(DIST_ROOT));
 });
 
 /**
@@ -98,6 +106,7 @@ gulp.task('compile-css', () => {
 gulp.task('compile-app-dev', () => {
   return rollup({
     entry: `${SRC_ROOT}js/app.js`,
+    external: ['quagga'],
     sourceMap: true,
     plugins: [
       rollupBabelPlugin(),

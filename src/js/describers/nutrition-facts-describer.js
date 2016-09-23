@@ -26,6 +26,12 @@ export default class NutritionFactsDescriber {
   }
 
   canDescribe(textMetadata) {
+    const numberOfTextRegions = textMetadata.regions ?
+      textMetadata.regions.length : 0;
+    if (numberOfTextRegions === 0) {
+      return false;
+    }
+
     let fullText = '';
     for (const region of textMetadata.regions) {
       for (const line of region.lines) {

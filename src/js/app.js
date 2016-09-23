@@ -1,9 +1,10 @@
 import Defer from './defer';
 import VideoManager from './video-manager';
-import TextRecognizer from './text-recognizer';
+import ThingRecognizer from './thing-recognizer';
 import ThingDescriber from './thing-describer';
 import LocalStorage from './local-storage';
 import InMemoryStorage from './in-memory-storage';
+import SessionStore from './session-store';
 import Painter from './painter';
 
 const sampleActions = Object.freeze({
@@ -15,7 +16,7 @@ const sampleActions = Object.freeze({
 const canPlayDefer = new Defer();
 const videoManager = new VideoManager();
 const thingDescriber = new ThingDescriber();
-const textRecognizer = new TextRecognizer();
+const thingRecognizer = new ThingRecognizer();
 const storage = LocalStorage.isSupported() ?
   new LocalStorage() : new InMemoryStorage();
 
@@ -29,7 +30,7 @@ const apiKeyComponent = document.querySelector('.access__api-key');
 
 apiKeyComponent.addEventListener('change', () => {
   storage.set('access', 'api-key', apiKeyComponent.value);
-  textRecognizer.setAPIKey(apiKeyComponent.value);
+  SessionStore.set('ms-api-key', apiKeyComponent.value);
 });
 
 storage.getByKey('access', 'api-key').catch((e) => {
@@ -37,7 +38,7 @@ storage.getByKey('access', 'api-key').catch((e) => {
   return '';
 }).then((apiKey) => {
   apiKeyComponent.value = apiKey;
-  textRecognizer.setAPIKey(apiKey);
+  SessionStore.set('ms-api-key', apiKey);
 });
 
 const samplesListComponent = document.querySelector('.samples-list');
@@ -59,7 +60,7 @@ samplesListComponent.addEventListener('click', (e) => {
   const buttonKind = e.target.dataset.kind;
 
   if (buttonKind === sampleActions.RECOGNIZE) {
-    textRecognizer.recognize(sample.image).then((textMetadata) => {
+    thingRecognizer.recognize(sample.image).then((textMetadata) => {
       console.log('Success: %o', textMetadata);
 
       sample.text = textMetadata;

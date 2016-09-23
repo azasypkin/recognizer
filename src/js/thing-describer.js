@@ -1,10 +1,11 @@
 import SpeechSynthesizer from './speech-synthesizer';
 import UnknownThingDescriber from './describers/unknown-thing-describer';
 import NutritionFactsDescriber from './describers/nutrition-facts-describer';
+import BarcodeDescriber from './describers/barcode-describer';
 
 const p = Object.freeze({
   synthesizer: Symbol('synthesizer'),
-  describers: Symbol('describers')
+  recognizers: Symbol('recognizers')
 });
 
 const DEFAULT_VOICE_PITCH = 0.8;
@@ -15,23 +16,23 @@ export default class ThingDescriber {
     const synthesizer = this[p.synthesizer] =
       new SpeechSynthesizer(pitch, rate);
 
-    this[p.describers] = [
+    this[p.recognizers] = [
+      new BarcodeDescriber(synthesizer),
       new NutritionFactsDescriber(synthesizer),
       new UnknownThingDescriber(synthesizer)
     ];
   }
 
   describe(textMetadata, textCanvas) {
-    if (textMetadata.regions.length === 0) {
-      this[p.synthesizer].speak('Sorry! I did not recognize any text.');
-      return;
-    }
-
-    for (const describer of this[p.describers]) {
+    for (const describer of this[p.recognizers]) {
       if (describer.canDescribe(textMetadata)) {
         describer.describe(textMetadata, textCanvas);
-        break;
+        return;
       }
     }
+
+    this[p.synthesizer].speak(
+      'Sorry! I do not recognize anything on this picture.'
+    );
   }
 }

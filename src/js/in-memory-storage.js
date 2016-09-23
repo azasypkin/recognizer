@@ -29,7 +29,7 @@ export default class InMemoryStorage {
   getByKey(storeKey, itemKey) {
     const store = this[p.db].get(storeKey);
 
-    if (!store || store.has(itemKey)) {
+    if (!store || !store.has(itemKey)) {
       return Promise.reject(
         new Error(`There is no item (${itemKey}) in the store (${storeKey}).`)
       );
